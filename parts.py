@@ -18,36 +18,22 @@ def signals_to_positions(signals, init_pos=0,
     WARNING: In production, override default zero value in init_pos with
     extreme caution.
     """
-    long_en_sv, long_ex_sv, short_en_sv, short_ex_sv, long_en_uv, long_ex_uv, short_en_uv, short_ex_uv  = mask
+    long_en, long_ex, short_en, short_ex = mask
     pos = init_pos
     ps = pandas.Series(0., index=signals.index)
     for t, sig in signals.iterrows():
-        # check svxy exit signals
+        # check exit signals
         if pos != 0:  # if in position
-            if pos > 0 and sig[long_ex_sv]:  # if exit long signal
-                pos -= sig[long_ex_sv]
-            elif pos < 0 and sig[short_ex_sv]:  # if exit short signal
-                pos += sig[short_ex_sv]
+            if pos > 0 and sig[long_ex]:  # if exit long signal
+                pos -= sig[long_ex]
+            elif pos < 0 and sig[short_ex]:  # if exit short signal
+                pos += sig[short_ex]
         # check entry (possibly right after exit)
         if pos == 0:
-            if sig[long_en_sv]:
-                pos += sig[long_en_sv]
-            elif sig[short_en_sv]:
-                pos -= sig[short_en_sv]
-        
-         # check uvxy exit signals
-        if pos != 0:  # if in position
-            if pos > 0 and sig[long_ex_uv]:  # if exit long signal
-                pos -= sig[long_ex_uv]
-            elif pos < 0 and sig[short_ex_uv]:  # if exit short signal
-                pos += sig[short_ex_uv]
-        # check entry (possibly right after exit)
-        if pos == 0:
-            if sig[long_en_uv]:
-                pos += sig[long_en_uv]
-            elif sig[short_en_uv]:
-                pos -= sig[short_en_uv]
-        ps[t] = pos
+            if sig[long_en]:
+                pos += sig[long_en]
+            elif sig[short_en]:
+                pos -= sig[short_en]
     return ps[ps != ps.shift()]
 
 
@@ -76,24 +62,14 @@ def trades_to_equity(trd):
 def extract_frame(dataobj, ext_mask, int_mask): #int = BuySV, ext = buySV
     df = {}
     for f_int, f_ext in zip(int_mask, ext_mask):
-        obj1 = dataobj.get(f_ext)
-        if isinstance(obj1, pandas.Series):
-            df1[f_int] = obj1
+        obj = dataobj.get(f_ext)
+        if isinstance(obj, pandas.Series):
+            df[f_int] = obj
         else:
-            df1[f_int] = None
-    
-    for f_int, f_ext in zip(int_mask, ext_mask):
-        obj2 = dataobj.get(f_ext)
-        if isinstance(obj2, pandas.Series) and obj1 != dataobj.get(f_ext):
-            df2[f_int] = obj2
-        else:
-            df2[f_int] = None
-            
-    if (any([isinstance(x, pandas.Series) for x in list(df1.values())]) and
-    any([isinstance(y, pandas.Series) for y in list(df2.values())])):
-        return pandas.DataFrame(df1), pandas.DataFrame(df2)
-    
-    return None
+            df[f_int] = None
+    if any([isinstance(x, pandas.Series) for x in list(df.values())]):
+        return pandas.DataFrame(df)
+
 
 
 class Slicer(object):

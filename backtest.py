@@ -160,11 +160,7 @@ class Backtest(object):
         for possible_name in self._ohlc_possible_fields:
             s = self.dataobj.get(possible_name)
             if not s is None:
-                break
-        for possible_name in self._ohlc_possible_fields:
-            t = self.dataobj.get(possible_name)
-            if not t is None:
-                return s, t
+                return s
         raise Exception("Bars dataframe was not found in dataobj")
 
     @cached_property
